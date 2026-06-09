@@ -1,7 +1,5 @@
 import subprocess
 import time
-import pyautogui
-import pygetwindow as gw
 import os
 from aiogram import Bot, Dispatcher, types, F
 from aiogram.filters import Command
@@ -14,37 +12,8 @@ bot = Bot(token=TOKEN)
 dp = Dispatcher()
 
 def snap_ngrok_now():
-    """Сворачивает всё, находит окно Ngrok, разворачивает и делает скриншот."""
-    try:
-        # 1. Сворачиваем окна (Win + D)
-        pyautogui.hotkey('win', 'd')
-        time.sleep(1)
-
-        # 2. Ищем окно
-        # Если ngrok не находится, выводим список для отладки
-        windows = [w for w in gw.getAllWindows() if 'ngrok' in w.title.lower()]
-        
-        if not windows:
-            print("DEBUG: Окна ngrok не найдены. Все окна:", [w.title for w in gw.getAllWindows()])
-            return None
-        
-        win = windows[0]
-        
-        # 3. Принудительно открываем
-        if win.isMinimized:
-            win.restore()
-        win.maximize()
-        win.activate()
-        time.sleep(1)
-        
-        # 4. Скриншот
-        path = "ngrok_final.png"
-        screenshot = pyautogui.screenshot()
-        screenshot.save(path)
-        return path
-    except Exception as e:
-        print(f"Ошибка захвата: {e}")
-        return None
+    """Not supported in server environment (requires desktop/GUI)."""
+    return None
 
 @dp.message(Command("start"))
 async def start(message: types.Message):
@@ -62,8 +31,8 @@ async def callback_handler(callback: types.CallbackQuery):
 
     if callback.data == "run_bat":
         try:
-            subprocess.Popen(r'C:\Users\klazn\Documents\server\START_ALL.bat', shell=True)
-            await callback.answer("✅ Сеть запущена")
+            subprocess.Popen(['/bin/sh', '-c', 'echo "Run command not configured"'], shell=False)
+            await callback.answer("✅ Команда запуска не настроена для этой среды")
         except Exception as e:
             await callback.answer(f"Ошибка запуска: {e}")
 
@@ -76,8 +45,8 @@ async def callback_handler(callback: types.CallbackQuery):
             await callback.message.answer("⚠️ Окно ngrok не найдено. Убедись, что оно открыто и содержит слово 'ngrok' в заголовке.")
 
     elif callback.data == "stop_all":
-        os.system("taskkill /F /IM java.exe /T")
-        os.system("taskkill /F /IM ngrok.exe /T")
+        os.system("pkill -f java || true")
+        os.system("pkill -f ngrok || true")
         await callback.answer("🛑 Всё остановлено")
 
 if __name__ == '__main__':
